@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BBQ予約フォーム</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+        
+        /* タブのスタイル */
+        .tab-container {
+            display: flex;
+            background: #fff;
+            border-bottom: 2px solid #4CAF50;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .tab-button {
+            flex: 1;
+            padding: 15px 10px;
+            background: #f5f5f5;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-size: 13px;
+            font-weight: bold;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            line-height: 1.3;
+        }
+        
+        .tab-button.active {
+            background: white;
+            border-bottom: 3px solid #4CAF50;
+            color: #2E7D32;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .container {
+            max-width: 450px;
+            margin: 0 auto;
+            background: white;
+            min-height: calc(100vh - 60px);
+        }
+        
+        /* ヘッダー with スライドショー */
+        .header {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+        }
+        
+        .header-slideshow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .slide.active {
+            opacity: 1;
+        }
+        
+        /* 1店舗目の画像 */
+        #tab1 .slide:nth-child(1) { 
+            background-image: url('https://raw.githubusercontent.com/machipri/bbq-images/main/minoh-main1.jpg');
+        }
+        #tab1 .slide:nth-child(2) { 
+            background-image: url('https://raw.githubusercontent.com/machipri/bbq-images/main/minoh-main2.jpg');
+        }
+        #tab1 .slide:nth-child(3) { 
+            background-image: url('https://raw.githubusercontent.com/machipri/bbq-images/main/minol-main3.jpg');
+        }
+        
+        /* 2店舗目の画像 */
+        #tab2 .slide:nth-child(1) { 
+            background-image: url('https://raw.githubusercontent.com/machipri/bbq-images/main/settukyomain5.jpg');
+        }
+        #tab2 .slide:nth-child(2) { 
+            background-image: url('https://raw.githubusercontent.com/machipri/bbq-images/main/settukyomain2.jpg');
+        }
+        #tab2 .slide:nth-child(3) { 
+            background-image: url('https://raw.githubusercontent.com/machipri/bbq-images/main/settukyomain4.jpg');
+        }
+        
+        .header-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .header-content {
+            text-align: center;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.95;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        /* 会場情報 */
+        .venue-info {
+            padding: 15px;
+            background: #E8F5E9;
+            border-bottom: 2px solid #4CAF50;
+        }
+        
+        .venue-description {
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        
+        .venue-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        
+        .venue-feature {
+            background: white;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 11px;
+            color: #2E7D32;
+            border: 1px solid #4CAF50;
+        }
+        
+        /* フォーム */
+        .form-container {
+            padding: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .required {
+            color: #d32f2f;
+            font-size: 11px;
+            margin-left: 5px;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            -webkit-appearance: none;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        
+        /* 氏名入力グループ */
+        .name-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .name-input-wrapper {
+            position: relative;
+        }
+        
+        .name-label {
+            display: block;
+            margin-bottom: 4px;
+            color: #666;
+            font-weight: normal;
+            font-size: 12px;
+        }
+        
+        /* 料金表示 */
+        .price-info {
+            background: #FFF3E0;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            margin-top: 5px;
+            line-height: 1.6;
+        }
+        
+        .price-info strong {
+            color: #E65100;
+        }
+        
+        /* 人数入力グループ */
+        .number-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .number-input {
+            text-align: center;
+        }
+        
+        .number-input label {
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
+        
+        .number-input select {
+            padding: 8px;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        /* 人数制限の注意書き */
+        .number-notice {
+            background: #E3F2FD;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            color: #1565C0;
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+        
+        /* オプション with 画像 */
+        .option-with-image {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .option-image {
+            width: 80px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 10px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        .option-select-wrapper {
+            flex: 1;
+        }
+        
+        .option-description {
+            background: #F5F5F5;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            color: #666;
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+        
+        /* 見積もり表示 */
+        .estimate-box {
+            background: linear-gradient(135deg, #FFE082 0%, #FFD54F 100%);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .estimate-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #F57C00;
+            margin-bottom: 10px;
+        }
+        
+        .estimate-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            font-size: 13px;
+            color: #333;
+        }
+        
+        .estimate-total {
+            border-top: 2px solid #F57C00;
+            margin-top: 10px;
+            padding-top: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #E65100;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        /* キャンセルポリシー */
+        .cancel-policy {
+            background: #E3F2FD;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        
+        .cancel-policy-title {
+            font-weight: bold;
+            color: #1565C0;
+            margin-bottom: 5px;
+        }
+        
+        /* ボタン */
+        .submit-btn, .confirm-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+            transition: all 0.3s;
+        }
+        
+        .submit-btn:active, .confirm-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .submit-btn:disabled, .confirm-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        
+        .back-btn {
+            width: 100%;
+            padding: 12px;
+            background: white;
+            color: #666;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        /* 確認画面 */
+        .confirmation-screen {
+            display: none;
+            padding: 20px;
+        }
+        
+        .confirmation-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2E7D32;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .confirmation-box {
+            background: #F5F5F5;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .confirmation-item {
+            display: flex;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        
+        .confirmation-label {
+            font-weight: bold;
+            color: #666;
+            width: 100px;
+            flex-shrink: 0;
+        }
+        
+        .confirmation-value {
+            color: #333;
+            flex: 1;
+        }
+        
+        /* メッセージ */
+        .success-message {
+            background: #C8E6C9;
+            color: #1B5E20;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            text-align: center;
+        }
+        
+        /* エラー表示 */
+        .error-text {
+            color: #d32f2f;
+            font-size: 11px;
+            margin-top: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- タブボタン -->
+    <div class="tab-container">
+        <button class="tab-button active" onclick="switchTab(1)">
+            【箕面 止々呂美】<br>川とBBQの<br>キャンプフィールド
+        </button>
+        <button class="tab-button" onclick="switchTab(2)">
+            【高槻 摂津峡】<br>川と森の<br>バーベキューランド
+        </button>
+    </div>
+    
+    <!-- タブコンテンツ1：川とBBQのキャンプフィールド -->
+    <div id="tab1" class="tab-content active">
+        <div class="container">
+            <!-- ヘッダー with スライドショー -->
+            <div class="header">
+                <div class="header-slideshow" id="slideshow1">
+                    <div class="slide active"></div>
+                    <div class="slide"></div>
+                    <div class="slide"></div>
+                </div>
+                <div class="header-overlay">
+                    <div class="header-content">
+                        <h1>【箕面 止々呂美】<br>川とBBQのキャンプフィールド</h1>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 会場情報 -->
+            <div class="venue-info">
+                <p class="venue-description">
+                    市内から車で25分の好立地！<br>
+                    大自然の中で川遊びとバーベキューをお楽しみいただけます！
+                </p>
+                <div class="venue-features">
+                    <span class="venue-feature">🚗 駐車場70台</span>
+                    <span class="venue-feature">🚻 水洗トイレ</span>
+                    <span class="venue-feature">🧖 テントサウナ</span>
+                    <span class="venue-feature">🌙 ナイトBBQ</span>
+                </div>
+            </div>
+            
+            <!-- 予約フォーム -->
+            <div class="form-container" id="formContainer">
+                <div id="successMessage" class="success-message">
+                    ✅ 予約リクエストを送信しました！<br>
+                    確定連絡をお待ちください。
+                </div>
+                
+                <form id="reservationForm">
+                    <div class="form-group">
+                        <label>📅 利用日<span class="required">必須</span></label>
+                        <input type="date" id="date" required onchange="checkFormValidity()">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>⏰ 利用時間（4時間制）<span class="required">必須</span></label>
+                        <select id="timeSlot" required onchange="checkFormValidity()">
+                            <option value="">選択してください</option>
+                            <option value="9:00~13:00">9:00~13:00</option>
+                            <option value="9:30~13:30">9:30~13:30</option>
+                            <option value="10:00~14:00">10:00~14:00</option>
+                            <option value="10:30~14:30">10:30~14:30</option>
+                            <option value="11:00~15:00">11:00~15:00</option>
+                            <option value="11:30~15:30">11:30~15:30</option>
+                            <option value="12:00~16:00">12:00~16:00</option>
+                            <option value="12:30~16:30">12:30~16:30</option>
+                            <option value="13:00~17:00">13:00~17:00</option>
+                            <option value="13:30~17:30">13:30~17:30</option>
+                            <option value="14:00~18:00">14:00~18:00</option>
+                            <option value="14:30~18:00">14:30~18:00</option>
+                            <option value="15:00~18:00">15:00~18:00</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>📋 プラン<span class="required">必須</span></label>
+                        <select id="plan" required onchange="updateEstimate(); checkFormValidity()">
+                            <option value="">選択してください</option>
+                            <option value="器材のみレンタル">器材のみレンタル</option>
+                            <option value="食材付き">食材付き</option>
+                        </select>
+                        <div class="price-info">
+                            <strong>【料金】</strong><br>
+                            食材付き: 大人3,500円 / 子供2,700円 / 幼児無料<br>
+                            器材のみ: 大人1,800円 / 子供1,000円 / 幼児無料
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>👥 人数<span class="required">必須</span></label>
+                        <div class="number-group">
+                            <div class="number-input">
+                                <label>大人<br>(中学生以上)</label>
+                                <select id="adults" required onchange="updateEstimate(); checkFormValidity()">
+                                    <option value="0">選択</option>
+                                    <option value="2">2人</option>
+                                    <option value="3">3人</option>
+                                    <option value="4">4人</option>
+                                    <option value="5">5人</option>
+                                    <option value="6">6人</option>
+                                    <option value="7">7人</option>
+                                    <option value="8">8人</option>
+                                    <option value="9">9人</option>
+                                    <option value="10">10人</option>
+                                    <option value="11">11人</option>
+                                    <option value="12">12人</option>
+                                    <option value="13">13人</option>
+                                    <option value="14">14人</option>
+                                    <option value="15">15人</option>
+                                    <option value="16">16人</option>
+                                    <option value="17">17人</option>
+                                    <option value="18">18人</option>
+                                    <option value="19">19人</option>
+                                    <option value="20">20人</option>
+                                    <option value="25">25人</option>
+                                    <option value="30">30人</option>
+                                    <option value="35">35人</option>
+                                    <option value="40">40人</option>
+                                    <option value="45">45人</option>
+                                    <option value="50">50人</option>
+                                </select>
+                            </div>
+                            <div class="number-input">
+                                <label>子供<br>(4歳〜小学生)</label>
+                                <select id="children" onchange="updateEstimate(); checkFormValidity()">
+                                    <option value="0">0人</option>
+                                    <option value="1">1人</option>
+                                    <option value="2">2人</option>
+                                    <option value="3">3人</option>
+                                    <option value="4">4人</option>
+                                    <option value="5">5人</option>
+                                    <option value="6">6人</option>
+                                    <option value="7">7人</option>
+                                    <option value="8">8人</option>
+                                    <option value="9">9人</option>
+                                    <option value="10">10人</option>
+                                    <option value="15">15人</option>
+                                    <option value="20">20人</option>
+                                    <option value="25">25人</option>
+                                    <option value="30">30人</option>
+                                    <option value="35">35人</option>
+                                    <option value="40">40人</option>
+                                    <option value="45">45人</option>
+                                    <option value="48">48人</option>
+                                </select>
+                            </div>
+                            <div class="number-input">
+                                <label>幼児<br>(3歳以下)</label>
+                                <select id="infants" onchange="updateEstimate(); checkFormValidity()">
+                                    <option value="0">0人</option>
+                                    <option value="1">1人</option>
+                                    <option value="2">2人</option>
+                                    <option value="3">3人</option>
+                                    <option value="4">4人</option>
+                                    <option value="5">5人</option>
+                                    <option value="6">6人</option>
+                                    <option value="7">7人</option>
+                                    <option value="8">8人</option>
+                                    <option value="9">9人</option>
+                                    <option value="10">10人</option>
+                                    <option value="15">15人</option>
+                                    <option value="20">20人</option>
+                                    <option value="25">25人</option>
+                                    <option value="30">30人</option>
+                                    <option value="35">35人</option>
+                                    <option value="40">40人</option>
+                                    <option value="45">45人</option>
+                                    <option value="48">48人</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="number-notice">
+                            ※ 大人2人以上からご予約可能です
+                        </div>
+                        <div class="error-text" id="numberError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>👤 代表者氏名<span class="required">必須</span></label>
+                        <div class="name-group">
+                            <div class="name-input-wrapper">
+                                <span class="name-label">（姓）</span>
+                                <input type="text" id="lastName" required placeholder="でりでり" onkeyup="checkFormValidity()">
+                            </div>
+                            <div class="name-input-wrapper">
+                                <span class="name-label">（名）</span>
+                                <input type="text" id="firstName" required placeholder="太郎" onkeyup="checkFormValidity()">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>📞 携帯電話番号<span class="required">必須</span></label>
+                        <input type="tel" id="phone" required placeholder="090-1234-5678" onkeyup="checkFormValidity()">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>⛺ オプション：タープテント（1本2,000円）</label>
+                        <div class="option-with-image">
+                          <img src="https://raw.githubusercontent.com/machipri/bbq-images/main/tarp.jpg" alt="タープテント" class="option-image">
+                            <div class="option-select-wrapper">
+                                <select id="optionTarp" onchange="updateEstimate()">
+                                    <option value="0">なし</option>
+                                    <option value="1">1本</option>
+                                    <option value="2">2本</option>
+                                    <option value="3">3本</option>
+                                    <option value="4">4本</option>
+                                    <option value="5">5本</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="option-description">
+                            足つきの屋根3m×3m（1本で12名まで）1本2,000円（税込）にてレンタル可能です。
+                            ご注文いただければ設置まで行います。<br>
+                            ※木陰等日除けになる場所がありません。<br>
+                            ※当日ではレンタルできない場合もございますので事前にご連絡ください。<br>
+                            ※繁忙期は10名で2本レンタルできない場合もございます。
+                        </div>
+                    </div>
+                    
+                    <!-- 見積もり表示 -->
+                    <div class="estimate-box" id="estimateBox" style="display:none;">
+                        <div class="estimate-title">💰 現在のお見積り金額</div>
+                        <div id="estimateDetails"></div>
+                        <div class="estimate-total">
+                            <span>合計金額</span>
+                            <span id="totalAmount">¥0</span>
+                        </div>
+                    </div>
+                    
+                    <!-- キャンセルポリシー -->
+                    <div class="cancel-policy">
+                        <div class="cancel-policy-title">📌 キャンセル・人数減少について</div>
+                        <strong>器材のみレンタル:</strong> 前日の正午まで無料<br>
+                        <strong>食材付きコース:</strong> 2日前の正午まで無料<br>
+                        ※期限を過ぎた場合はキャンセル料が発生します
+                    </div>
+                    
+                    <button type="button" class="submit-btn" id="submitBtn" onclick="showConfirmation()" disabled>
+                        確認画面へ
+                    </button>
+                </form>
+            </div>
+            
+            <!-- 確認画面 -->
+            <div class="confirmation-screen" id="confirmationScreen">
+                <div class="confirmation-title">予約内容確認</div>
+                
+                <div class="confirmation-box">
+                    <div class="confirmation-item">
+                        <span class="confirmation-label">会場名</span>
+                        <span class="confirmation-value">川とBBQのキャンプフィールド</span>
+                    </div>
+                    <div class="confirmation-item">
+                        <span class="confirmation-label">利用日</span>
+                        <span class="confirmation-value" id="confirmDate"></span>
+                    </div>
+                    <div class="confirmation-item">
+                        <span class="confirmation-label">利用時間</span>
+                        <span class="confirmation-value" id="confirmTime"></span>
+                    </div>
+                    <div class="confirmation-item">
+                        <span class="confirmation-label">プラン</span>
+                        <span class="confirmation-value" id="confirmPlan"></span>
+                    </div>
+                    <div class="confirmation-item">
+                        <span class="confirmation-label">人数</span>
+                        <span class="confirmation-value" id="confirmNumber"></span>
+                    </div>
+                    <div class="confirmation-item">
+                        <span class="confirmation-label">代表者</span>
+                        <span class="confirmation-value" id="confirmName"></span>
+                    </div>
+                    <div class="confirmation-item">
+                        <span class="confirmation-label">電話番号</span>
+                        <span class="confirmation-value" id="confirmPhone"></span>
+                    </div>
+                    <div class="confirmation-item" id="confirmTarpRow" style="display:none;">
+                        <span class="confirmation-label">タープテント</span>
+                        <span class="confirmation-value" id="confirmTarp"></span>
+                    </div>
+                </div>
+                
+                <div class="estimate-box">
+                    <div class="estimate-title">💰 お支払い予定金額</div>
+                    <div id="confirmEstimateDetails"></div>
+                    <div class="estimate-total">
+                        <span>合計金額</span>
+                        <span id="confirmTotalAmount">¥0</span>
+                    </div>
+                </div>
+                
+                <button type="button" class="confirm-btn" id="confirmBtn" onclick="submitReservation()">
+                    予約リクエストを送信
+                </button>
+                
+                <button type="button" class="back-btn" onclick="backToForm()">
+                    入力内容を修正する
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- タブコンテンツ2：川と森のバーベキューランド -->
+    <div id="tab2" class="tab-content">
+        <div class="container">
+            <!-- ヘッダー with スライドショー -->
+            <div class="header">
+                <div class="header-slideshow" id="slideshow2">
+                    <div class="slide active"></div>
+                    <div class="slide"></div>
+                    <div class="slide"></div>
+                </div>
+                <div class="header-overlay">
+                    <div class="header-content">
+                        <h1>【高槻 摂津峡】<br>川と森のバーベキューランド</h1>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 会場情報 -->
+            <div class="venue-info">
+                <p class="venue-description">
+                    川遊びとバーベキューが1度に楽しめる自然豊かなBBQ場
+                </p>
+                <div class="venue-features">
+                    <span class="venue-feature">🚗 駐車場160台</span>
+                    <span class="venue-feature">🚻 水洗トイレ</span>
+                </div>
+            </div>
+            
+            <!-- 予約フォーム -->
+            <div class="form-container" id="formContainer2">
+                <div id="successMessage2" class="success-message">
+                    ✅ 予約リクエストを送信しました！<br>
+                    確定連絡をお待ちください。
+                </div>
+                
+                <form id="reservationForm2">
+                    <div class="form-group">
+                        <label>📅 利用日<span class="required">必須</span></label>
+                        <input type="date" id="date2" required onchange="checkFormValidity2()">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>⏰ 利用時間（3時間制 ※9:00のみ4時間）<span class="required">必須</span></label>
+                        <select id="timeSlot2" required onchange="checkFormValidity2()">
+                            <option value="">選択してください</option>
+                            <option value="9:00~13:00">9:00~13:00</option>
+                            <option value="9:30~13:00">9:30~13:00</option>
+                            <option value="10:00~13:00">10:00~13:00</option>
+                            <option value="10:30~13:30">10:30~13:30</option>
+                            <option value="11:00~14:00">11:00~14:00</option>
+                            <option value="11:30~14:30">11:30~14:30</option>
+                            <option value="12:00~15:00">12:00~15:00</option>
+                            <option value="12:30~15:30">12:30~15:30</option>
+                            <option value="13:00~16:00">13:00~16:00</option>
+                            <option value="13:30~16:30">13:30~16:30</option>
+                            <option value="14:00~17:00">14:00~17:00</option>
+                            <option value="14:30~17:30">14:30~17:30</option>
+                            <option value="15:00~18:00">15:00~18:00</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>📋 プラン<span class="required">必須</span></label>
+                        <select id="plan2" required onchange="updateEstimate2(); checkFormValidity2()">
+                            <option value="">選択してください</option>
+                            <option value="器材のみレンタル">器材のみレンタル</option>
+                            <option value="食材付き">食材付き</option>
+                        </select>
+                        <div class="price-info">
+                            <strong>【料金】</strong><br>
+                            食材付き: 大人3,500円 / 子供2,700円 / 幼児無料<br>
+                            器材のみ: 大人1,800円 / 子供1,000円 / 幼児無料
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>👥 人数<span class="required">必須</span></label>
+                        <div class="number-group">
+                            <div class="number-input">
+                                <label>大人<br>(中学生以上)</label>
+                                <select id="adults2" required onchange="updateEstimate2(); checkFormValidity2()">
+                                    <option value="0">選択</option>
+                                    <option value="2">2人</option>
+                                    <option value="3">3人</option>
+                                    <option value="4">4人</option>
+                                    <option value="5">5人</option>
+                                    <option value="6">6人</option>
+                                    <option value="7">7人</option>
+                                    <option value="8">8人</option>
+                                    <option value="9">9人</option>
+                                    <option value="10">10人</option>
+                                    <option value="11">11人</option>
+                                    <option value="12">12人</option>
+                                    <option value="13">13人</option>
+                                    <option value="14">14人</option>
+                                    <option value="15">15人</option>
+                                    <option value="16">16人</option>
+                                    <option value="17">17人</option>
+                                    <option value="18">18人</option>
+                                    <option value="19">19人</option>
+                                    <option value="20">20人</option>
+                                    <option value="25">25人</option>
+                                    <option value="30">30人</option>
+                                    <option value="35">35人</option>
+                                    <option value="40">40人</option>
+                                    <option value="45">45人</option>
+                                    <option value="50">50人</option>
+                                </select>
+                            </div>
+                            <div class="number-input">
+                                <label>子供<br>(4歳〜小学生)</label>
+                                <select id="children2" onchange="updateEstimate2(); checkFormValidity2()">
+                                    <option value="0">0人</option>
+                                    <option value="1">1人</option>
+                                    <option value="2">2人</option>
+                                    <option value="3">3人</option>
+                                    <option value="4">4人</option>
+                                    <option value="5">5人</option>
+                                    <option value="6">6人</option>
+                                    <option value="7">7人</option>
+                                    <option value="8">8人</option>
+                                    <option value="9">9人</option>
+                                    <option value="10">10人</option>
+                                    <option value="15">15人</option>
+                                    <option value="20">20人</option>
+                                    <option value="25">25人</option>
+                                    <option value="30">30人</option>
+                                    <option value="35">35人</option>
+                                    <option value="40">40人</option>
+                                    <option value="45">45人</option>
+                                    <option value="48">48人</option>
+                                </select>
+                            </div>
+                            <div class="number-input">
+                                <label>幼児<br>(3歳以下)</label>
+                                <select id="infants2" onchange="updateEstimate2(); checkFormValidity2()">
+                                    <option value="0">0人</option>
+                                    <option value="1">1人</option>
+                                    <option value="2">2人</option>
+                                    <option value="3">3人</option>
+                                    <option value="4">4人</option>
+                                    <option value="5">5人</option>
+                                    <option value="6">6人</option>
+                                    <option value="7">7人</option>
+                                    <option value="8">8人</option>
+                                    <option value="9">9人</option>
+                                    <option value="10">10人</option>
+                                    <option value="15">15人</option>
+                                    <option value="20">20人</option>
+                                    <option value="25">25人</option>
+                                    <option value="30">30人</option>
+                                    <option value="35">35人</option>
+                                    <option value="40">40人</option>
+                                    <option value="45">45人</option>
+                                    <option value="48">48人</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="number-notice">
+                            ※ 大人2人以上からご予約可能です
+                        </div>
+                        <div class="error-text" id="numberError2"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>👤 代表者氏名<span class="required">必須</span></label>
+                        <div class="name-group">
+                            <div class="name-input-wrapper">
+                                <span class="name-label">（姓）</span>
+                                <input type="text" id="lastName2" required placeholder="でりでり" onkeyup="checkFormValidity2()">
+                            </div>
+                            <div class="name-input-wrapper">
+                                <span class="name-label">（名）</span>
+                                <input type="text" id="firstName2" required placeholder="太郎" onkeyup="checkFormValidity2()">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>📞 携帯電話番号<span class="required">必須</span></label>
+                        <input type="tel" id="phone2" required placeholder="090-1234-5678" onkeyup="checkFormValidity2()">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>⛺ オプション：タープテント（1本2,000円）</label>
+                        <div class="option-with-image">
+                           <img src="https://raw.githubusercontent.com/machipri/bbq-images/main/tarp.jpg" alt="タープテント" class="option-image">
+                            <div class="option-select-wrapper">
+                                <select id="optionTarp2" onchange="updateEstimate2()">
+                                    <option value="0">なし</option>
+                                    <option value="1">1本</option>
+                                    <option value="2">2本</option>
+                                    <option value="3">3本</option>
+                                    <option value="4">4本</option>
+                                    <option value="5">5本</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="option-description">
+                            足つきの屋根3m×3m（1本で12名まで）1本2,000円（税込）にてレンタル可能です。
+                            ご注文いただければ設置まで行います。<br>
+                            ※木陰等日除けになる場所がありません。<br>
+                            ※当日ではレンタルできない場合もございますので事前にご連絡ください。<br>
+                            ※繁忙期は10名で2本レンタルできない場合もございます。
+                        </div>
+                    </div>
+                    
+                    <!-- 見積もり表示 -->
+                    <div class="estimate-box" id="estimateBox2" style="display:none;">
+                        <div class="estimate-title">💰 現在のお見積り金額</div>
+                        <div id="estimateDetails2"></div>
+                        <div class="estimate-total">
+                            <span>合計金額</span>
+                            <span id="totalAmount2">¥0</span>
+                        </div>
+                    </div>
+                    
+                    <!-- キャンセルポリシー -->
+                    <div class="cancel-policy">
+                        <div class="cancel-policy-title">📌 キャンセル・人数減少について</div>
+                        <strong>器材のみレンタル:</strong> 前日の正午まで無料<br>
+                        <strong>食材付きコース:</strong> 2日前の正午まで無料<br>
+                        ※期限を過ぎた場合はキャンセル料が発生します
+                    </div>
+                    
+                    <button type="button" class="submit-btn" id="submitBtn2" onclick="showConfirmation2()" disabled>
+                        確認画面へ
+                    </button>
+                </form>
+            </div>
+            
+            <!-- 確認画面 -->
+            <div class="confirmation-screen" id="confirmationScreen2">
+                <div class="confirmation-title">予約内容確認</div>
+                
+                <div class="confirmation-box">
+                    <div class="confirmation-item">
+                        <span class="confirmation-label">会場名</span>
+                        <span class="confirmation-value">川と森のバーベキューランド</span>
+                    </div>
+                    <div class="confirmation-item">
+                        <span class="confirmation-label">利用日</span>
+                        <span class="confirmation-value" id="confirmDate2"></span>
+                    </div>
+                    <div class="confirmation-item">
+                        <span class="confirmation-label">利用時間</span>
+                        <span class="confirmation-value" id="confirmTime2"></span>
+                    </div>
+                    <div class="confirmation-item">
+                        <span class="confirmation-label">プラン</span>
+                        <span class="confirmation-value" id="confirmPlan2"></span>
+                    </div>
+                    <div class="confirmation-item">
+                        <span class="confirmation-label">人数</span>
+                        <span class="confirmation-value" id="confirmNumber2"></span>
+                    </div>
+                    <div class="confirmation-item">
+                        <span class="confirmation-label">代表者</span>
+                        <span class="confirmation-value" id="confirmName2"></span>
+                    </div>
+                    <div class="confirmation-item">
+                        <span class="confirmation-label">電話番号</span>
+                        <span class="confirmation-value" id="confirmPhone2"></span>
+                    </div>
+                    <div class="confirmation-item" id="confirmTarpRow2" style="display:none;">
+                        <span class="confirmation-label">タープテント</span>
+                        <span class="confirmation-value" id="confirmTarp2"></span>
+                    </div>
+                </div>
+                
+                <div class="estimate-box">
+                    <div class="estimate-title">💰 お支払い予定金額</div>
+                    <div id="confirmEstimateDetails2"></div>
+                    <div class="estimate-total">
+                        <span>合計金額</span>
+                        <span id="confirmTotalAmount2">¥0</span>
+                    </div>
+                </div>
+                
+                <button type="button" class="confirm-btn" id="confirmBtn2" onclick="submitReservation2()">
+                    予約リクエストを送信
+                </button>
+                
+                <button type="button" class="back-btn" onclick="backToForm2()">
+                    入力内容を修正する
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // GAS Web App URL（ここに実際のURLを設定）
+        const GAS_API_URL = 'https://script.google.com/macros/s/YOUR_GAS_DEPLOYMENT_ID/exec';
+        
+        let liffUserId = '';
+        let slideIndex1 = 0;
+        let slideIndex2 = 0;
+        
+        // 料金設定
+        const PRICES = {
+            '食材付き': { adult: 3500, child: 2700, infant: 0 },
+            '器材のみレンタル': { adult: 1800, child: 1000, infant: 0 },
+            'tarp': 2000
+        };
+        
+        // タブ切り替え関数
+        function switchTab(tabNumber) {
+            // すべてのタブボタンとコンテンツを非アクティブに
+            const allButtons = document.querySelectorAll('.tab-button');
+            const allContents = document.querySelectorAll('.tab-content');
+            
+            allButtons.forEach(button => button.classList.remove('active'));
+            allContents.forEach(content => content.classList.remove('active'));
+            
+            // 選択されたタブをアクティブに
+            allButtons[tabNumber - 1].classList.add('active');
+            document.getElementById(`tab${tabNumber}`).classList.add('active');
+            
+            // 成功メッセージを非表示
+            document.getElementById('successMessage').style.display = 'none';
+            document.getElementById('successMessage2').style.display = 'none';
+            
+            // スクロール位置をリセット
+            window.scrollTo(0, 0);
+        }
+        
+        // スライドショー（1店舗目）
+        function startSlideshow1() {
+            const slides = document.querySelectorAll('#tab1 .slide');
+            setInterval(() => {
+                slides[slideIndex1].classList.remove('active');
+                slideIndex1 = (slideIndex1 + 1) % slides.length;
+                slides[slideIndex1].classList.add('active');
+            }, 3000);
+        }
+        
+        // スライドショー（2店舗目）
+        function startSlideshow2() {
+            const slides = document.querySelectorAll('#tab2 .slide');
+            setInterval(() => {
+                slides[slideIndex2].classList.remove('active');
+                slideIndex2 = (slideIndex2 + 1) % slides.length;
+                slides[slideIndex2].classList.add('active');
+            }, 3500); // 少し時間をずらす
+        }
+        
+        // === 1店舗目の関数 ===
+        
+        // フォームの有効性チェック
+        function checkFormValidity() {
+            const date = document.getElementById('date').value;
+            const timeSlot = document.getElementById('timeSlot').value;
+            const plan = document.getElementById('plan').value;
+            const adults = parseInt(document.getElementById('adults').value) || 0;
+            const lastName = document.getElementById('lastName').value;
+            const firstName = document.getElementById('firstName').value;
+            const phone = document.getElementById('phone').value;
+            
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (date && timeSlot && plan && adults >= 2 && lastName && firstName && phone) {
+                const children = parseInt(document.getElementById('children').value) || 0;
+                const infants = parseInt(document.getElementById('infants').value) || 0;
+                const totalPeople = adults + children + infants;
+                
+                if (totalPeople <= 50) {
+                    submitBtn.disabled = false;
+                } else {
+                    submitBtn.disabled = true;
+                }
+            } else {
+                submitBtn.disabled = true;
+            }
+        }
+        
+        // 見積もり計算
+        function updateEstimate() {
+            const plan = document.getElementById('plan').value;
+            const adults = parseInt(document.getElementById('adults').value) || 0;
+            const children = parseInt(document.getElementById('children').value) || 0;
+            const infants = parseInt(document.getElementById('infants').value) || 0;
+            const tarps = parseInt(document.getElementById('optionTarp').value) || 0;
+            
+            const totalPeople = adults + children + infants;
+            const errorElement = document.getElementById('numberError');
+            
+            if (adults > 0 && adults < 2) {
+                errorElement.textContent = '※ 大人は2人以上を選択してください';
+                errorElement.style.display = 'block';
+            } else if (totalPeople > 50) {
+                errorElement.textContent = '※ 合計人数が50名を超えています。お電話（080-1234-5678）にてご予約ください';
+                errorElement.style.display = 'block';
+            } else {
+                errorElement.style.display = 'none';
+            }
+            
+            if (!plan || adults === 0) {
+                document.getElementById('estimateBox').style.display = 'none';
+                return;
+            }
+            
+            const prices = PRICES[plan];
+            let total = 0;
+            let details = '';
+            
+            if (adults > 0) {
+                const adultTotal = adults * prices.adult;
+                total += adultTotal;
+                details += `<div class="estimate-item">
+                    <span>大人 ${adults}名 × ¥${prices.adult.toLocaleString()}</span>
+                    <span>¥${adultTotal.toLocaleString()}</span>
+                </div>`;
+            }
+            
+            if (children > 0) {
+                const childTotal = children * prices.child;
+                total += childTotal;
+                details += `<div class="estimate-item">
+                    <span>子供 ${children}名 × ¥${prices.child.toLocaleString()}</span>
+                    <span>¥${childTotal.toLocaleString()}</span>
+                </div>`;
+            }
+            
+            if (infants > 0) {
+                details += `<div class="estimate-item">
+                    <span>幼児 ${infants}名</span>
+                    <span>無料</span>
+                </div>`;
+            }
+            
+            if (tarps > 0) {
+                const tarpTotal = tarps * PRICES.tarp;
+                total += tarpTotal;
+                details += `<div class="estimate-item">
+                    <span>タープテント ${tarps}本 × ¥${PRICES.tarp.toLocaleString()}</span>
+                    <span>¥${tarpTotal.toLocaleString()}</span>
+                </div>`;
+            }
+            
+            document.getElementById('estimateDetails').innerHTML = details;
+            document.getElementById('totalAmount').textContent = '¥' + total.toLocaleString();
+            document.getElementById('estimateBox').style.display = 'block';
+        }
+        
+        // バリデーション
+        function validateForm() {
+            const adults = parseInt(document.getElementById('adults').value) || 0;
+            const children = parseInt(document.getElementById('children').value) || 0;
+            const infants = parseInt(document.getElementById('infants').value) || 0;
+            const totalPeople = adults + children + infants;
+            
+            if (adults < 2) {
+                alert('大人は2人以上を選択してください');
+                return false;
+            }
+            
+            if (totalPeople > 50) {
+                alert('合計人数が50名を超えています。\nお電話（080-1234-5678）にてご予約ください');
+                return false;
+            }
+            
+            const required = ['date', 'timeSlot', 'plan', 'lastName', 'firstName', 'phone'];
+            for (let id of required) {
+                if (!document.getElementById(id).value) {
+                    alert('必須項目をすべて入力してください');
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+        
+        // 確認画面表示
+        function showConfirmation() {
+            if (!validateForm()) return;
+            
+            const adults = parseInt(document.getElementById('adults').value) || 0;
+            const children = parseInt(document.getElementById('children').value) || 0;
+            const infants = parseInt(document.getElementById('infants').value) || 0;
+            const tarps = parseInt(document.getElementById('optionTarp').value) || 0;
+            
+            document.getElementById('confirmDate').textContent = document.getElementById('date').value;
+            document.getElementById('confirmTime').textContent = document.getElementById('timeSlot').value;
+            document.getElementById('confirmPlan').textContent = document.getElementById('plan').value;
+            document.getElementById('confirmName').textContent = document.getElementById('lastName').value + ' ' + document.getElementById('firstName').value;
+            document.getElementById('confirmPhone').textContent = document.getElementById('phone').value;
+            
+            let numberText = '';
+            if (adults > 0) numberText += `大人${adults}人`;
+            if (children > 0) {
+                if (numberText) numberText += '、';
+                numberText += `子供${children}人`;
+            }
+            if (infants > 0) {
+                if (numberText) numberText += '、';
+                numberText += `幼児${infants}人`;
+            }
+            document.getElementById('confirmNumber').textContent = numberText;
+            
+            if (tarps > 0) {
+                document.getElementById('confirmTarpRow').style.display = 'flex';
+                document.getElementById('confirmTarp').textContent = `${tarps}本`;
+            } else {
+                document.getElementById('confirmTarpRow').style.display = 'none';
+            }
+            
+            document.getElementById('confirmEstimateDetails').innerHTML = document.getElementById('estimateDetails').innerHTML;
+            document.getElementById('confirmTotalAmount').textContent = document.getElementById('totalAmount').textContent;
+            
+            document.getElementById('formContainer').style.display = 'none';
+            document.getElementById('confirmationScreen').style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+        
+        // フォームに戻る
+        function backToForm() {
+            document.getElementById('confirmationScreen').style.display = 'none';
+            document.getElementById('formContainer').style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+        
+        // 予約送信処理
+        async function submitReservation() {
+            const confirmBtn = document.getElementById('confirmBtn');
+            const successMsg = document.getElementById('successMessage');
+            
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = '送信中...';
+            
+            const formData = {
+                venueName: '川とBBQのキャンプフィールド',
+                date: document.getElementById('date').value,
+                timeSlot: document.getElementById('timeSlot').value,
+                plan: document.getElementById('plan').value,
+                adults: document.getElementById('adults').value,
+                children: document.getElementById('children').value,
+                infants: document.getElementById('infants').value,
+                name: document.getElementById('lastName').value + ' ' + document.getElementById('firstName').value,
+                phone: document.getElementById('phone').value,
+                optionTarp: document.getElementById('optionTarp').value,
+                totalAmount: document.getElementById('totalAmount').textContent,
+                userId: liffUserId,
+                timestamp: new Date().toISOString()
+            };
+            
+            let numberText = '';
+            if (formData.adults > 0) numberText += `大人（中学生以上）${formData.adults}人`;
+            if (formData.children > 0) {
+                if (numberText) numberText += '、';
+                numberText += `子供（4歳〜小学生）${formData.children}人`;
+            }
+            if (formData.infants > 0) {
+                if (numberText) numberText += '、';
+                numberText += `幼児（3歳以下）${formData.infants}人`;
+            }
+            
+            let lineMessage = `━━━━━━━━━━━━━━━\n`;
+            lineMessage += `📋 予約リクエスト受付\n`;
+            lineMessage += `━━━━━━━━━━━━━━━\n\n`;
+            lineMessage += `会場名: ${formData.venueName}\n`;
+            lineMessage += `代表者氏名: ${formData.name}\n`;
+            lineMessage += `予約日時: ${formData.date} ${formData.timeSlot}\n`;
+            lineMessage += `プラン: ${formData.plan}\n`;
+            lineMessage += `人数: ${numberText}\n`;
+            
+            if (formData.optionTarp > 0) {
+                lineMessage += `オプションタープテント: ${formData.optionTarp}本\n`;
+            }
+            
+            lineMessage += `\n💰 お見積り金額: ${formData.totalAmount}\n`;
+            lineMessage += `\n上記内容でご予約のリクエストを受け付けました。\n\n`;
+            lineMessage += `※ご予約は完了しておりませんので、店舗からの連絡をお待ちください。\n`;
+            lineMessage += `※1日〜2日経っても返信がない場合、お手数ですがお電話にてご連絡ください。\n\n`;
+            
+            if (formData.plan === '食材付き') {
+                lineMessage += `📌 キャンセル無料期限: 2日前の正午まで\n\n`;
+            } else {
+                lineMessage += `📌 キャンセル無料期限: 前日の正午まで\n\n`;
+            }
+            
+            lineMessage += `お問い合わせ: 080-1234-5678`;
+            
+            try {
+                await fetch(GAS_API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        type: 'liff_bbq_reservation',
+                        data: formData
+                    })
+                });
+                
+                if (liff.isInClient()) {
+                    await liff.sendMessages([{
+                        type: 'text',
+                        text: lineMessage
+                    }]);
+                }
+                
+                document.getElementById('confirmationScreen').style.display = 'none';
+                document.getElementById('formContainer').style.display = 'block';
+                successMsg.style.display = 'block';
+                document.getElementById('reservationForm').reset();
+                document.getElementById('estimateBox').style.display = 'none';
+                
+                document.getElementById('submitBtn').disabled = true;
+                window.scrollTo(0, 0);
+                
+                setTimeout(() => {
+                    if (liff.isInClient()) {
+                        liff.closeWindow();
+                    }
+                }, 3000);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('送信に失敗しました。もう一度お試しください。');
+            } finally {
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = '予約リクエストを送信';
+            }
+        }
+        
+        // === 2店舗目の関数 ===
+        
+        function checkFormValidity2() {
+            const date = document.getElementById('date2').value;
+            const timeSlot = document.getElementById('timeSlot2').value;
+            const plan = document.getElementById('plan2').value;
+            const adults = parseInt(document.getElementById('adults2').value) || 0;
+            const lastName = document.getElementById('lastName2').value;
+            const firstName = document.getElementById('firstName2').value;
+            const phone = document.getElementById('phone2').value;
+            
+            const submitBtn = document.getElementById('submitBtn2');
+            
+            if (date && timeSlot && plan && adults >= 2 && lastName && firstName && phone) {
+                const children = parseInt(document.getElementById('children2').value) || 0;
+                const infants = parseInt(document.getElementById('infants2').value) || 0;
+                const totalPeople = adults + children + infants;
+                
+                if (totalPeople <= 50) {
+                    submitBtn.disabled = false;
+                } else {
+                    submitBtn.disabled = true;
+                }
+            } else {
+                submitBtn.disabled = true;
+            }
+        }
+        
+        function updateEstimate2() {
+            const plan = document.getElementById('plan2').value;
+            const adults = parseInt(document.getElementById('adults2').value) || 0;
+            const children = parseInt(document.getElementById('children2').value) || 0;
+            const infants = parseInt(document.getElementById('infants2').value) || 0;
+            const tarps = parseInt(document.getElementById('optionTarp2').value) || 0;
+            
+            const totalPeople = adults + children + infants;
+            const errorElement = document.getElementById('numberError2');
+            
+            if (adults > 0 && adults < 2) {
+                errorElement.textContent = '※ 大人は2人以上を選択してください';
+                errorElement.style.display = 'block';
+            } else if (totalPeople > 50) {
+                errorElement.textContent = '※ 合計人数が50名を超えています。お電話（080-1234-5678）にてご予約ください';
+                errorElement.style.display = 'block';
+            } else {
+                errorElement.style.display = 'none';
+            }
+            
+            if (!plan || adults === 0) {
+                document.getElementById('estimateBox2').style.display = 'none';
+                return;
+            }
+            
+            const prices = PRICES[plan];
+            let total = 0;
+            let details = '';
+            
+            if (adults > 0) {
+                const adultTotal = adults * prices.adult;
+                total += adultTotal;
+                details += `<div class="estimate-item">
+                    <span>大人 ${adults}名 × ¥${prices.adult.toLocaleString()}</span>
+                    <span>¥${adultTotal.toLocaleString()}</span>
+                </div>`;
+            }
+            
+            if (children > 0) {
+                const childTotal = children * prices.child;
+                total += childTotal;
+                details += `<div class="estimate-item">
+                    <span>子供 ${children}名 × ¥${prices.child.toLocaleString()}</span>
+                    <span>¥${childTotal.toLocaleString()}</span>
+                </div>`;
+            }
+            
+            if (infants > 0) {
+                details += `<div class="estimate-item">
+                    <span>幼児 ${infants}名</span>
+                    <span>無料</span>
+                </div>`;
+            }
+            
+            if (tarps > 0) {
+                const tarpTotal = tarps * PRICES.tarp;
+                total += tarpTotal;
+                details += `<div class="estimate-item">
+                    <span>タープテント ${tarps}本 × ¥${PRICES.tarp.toLocaleString()}</span>
+                    <span>¥${tarpTotal.toLocaleString()}</span>
+                </div>`;
+            }
+            
+            document.getElementById('estimateDetails2').innerHTML = details;
+            document.getElementById('totalAmount2').textContent = '¥' + total.toLocaleString();
+            document.getElementById('estimateBox2').style.display = 'block';
+        }
+        
+        function validateForm2() {
+            const adults = parseInt(document.getElementById('adults2').value) || 0;
+            const children = parseInt(document.getElementById('children2').value) || 0;
+            const infants = parseInt(document.getElementById('infants2').value) || 0;
+            const totalPeople = adults + children + infants;
+            
+            if (adults < 2) {
+                alert('大人は2人以上を選択してください');
+                return false;
+            }
+            
+            if (totalPeople > 50) {
+                alert('合計人数が50名を超えています。\nお電話（080-1234-5678）にてご予約ください');
+                return false;
+            }
+            
+            const required = ['date2', 'timeSlot2', 'plan2', 'lastName2', 'firstName2', 'phone2'];
+            for (let id of required) {
+                if (!document.getElementById(id).value) {
+                    alert('必須項目をすべて入力してください');
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+        
+        function showConfirmation2() {
+            if (!validateForm2()) return;
+            
+            const adults = parseInt(document.getElementById('adults2').value) || 0;
+            const children = parseInt(document.getElementById('children2').value) || 0;
+            const infants = parseInt(document.getElementById('infants2').value) || 0;
+            const tarps = parseInt(document.getElementById('optionTarp2').value) || 0;
+            
+            document.getElementById('confirmDate2').textContent = document.getElementById('date2').value;
+            document.getElementById('confirmTime2').textContent = document.getElementById('timeSlot2').value;
+            document.getElementById('confirmPlan2').textContent = document.getElementById('plan2').value;
+            document.getElementById('confirmName2').textContent = document.getElementById('lastName2').value + ' ' + document.getElementById('firstName2').value;
+            document.getElementById('confirmPhone2').textContent = document.getElementById('phone2').value;
+            
+            let numberText = '';
+            if (adults > 0) numberText += `大人${adults}人`;
+            if (children > 0) {
+                if (numberText) numberText += '、';
+                numberText += `子供${children}人`;
+            }
+            if (infants > 0) {
+                if (numberText) numberText += '、';
+                numberText += `幼児${infants}人`;
+            }
+            document.getElementById('confirmNumber2').textContent = numberText;
+            
+            if (tarps > 0) {
+                document.getElementById('confirmTarpRow2').style.display = 'flex';
+                document.getElementById('confirmTarp2').textContent = `${tarps}本`;
+            } else {
+                document.getElementById('confirmTarpRow2').style.display = 'none';
+            }
+            
+            document.getElementById('confirmEstimateDetails2').innerHTML = document.getElementById('estimateDetails2').innerHTML;
+            document.getElementById('confirmTotalAmount2').textContent = document.getElementById('totalAmount2').textContent;
+            
+            document.getElementById('formContainer2').style.display = 'none';
+            document.getElementById('confirmationScreen2').style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+        
+        function backToForm2() {
+            document.getElementById('confirmationScreen2').style.display = 'none';
+            document.getElementById('formContainer2').style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+        
+        async function submitReservation2() {
+            const confirmBtn = document.getElementById('confirmBtn2');
+            const successMsg = document.getElementById('successMessage2');
+            
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = '送信中...';
+            
+            const formData = {
+                venueName: '川と森のバーベキューランド',
+                date: document.getElementById('date2').value,
+                timeSlot: document.getElementById('timeSlot2').value,
+                plan: document.getElementById('plan2').value,
+                adults: document.getElementById('adults2').value,
+                children: document.getElementById('children2').value,
+                infants: document.getElementById('infants2').value,
+                name: document.getElementById('lastName2').value + ' ' + document.getElementById('firstName2').value,
+                phone: document.getElementById('phone2').value,
+                optionTarp: document.getElementById('optionTarp2').value,
+                totalAmount: document.getElementById('totalAmount2').textContent,
+                userId: liffUserId,
+                timestamp: new Date().toISOString()
+            };
+            
+            let numberText = '';
+            if (formData.adults > 0) numberText += `大人（中学生以上）${formData.adults}人`;
+            if (formData.children > 0) {
+                if (numberText) numberText += '、';
+                numberText += `子供（4歳〜小学生）${formData.children}人`;
+            }
+            if (formData.infants > 0) {
+                if (numberText) numberText += '、';
+                numberText += `幼児（3歳以下）${formData.infants}人`;
+            }
+            
+            let lineMessage = `━━━━━━━━━━━━━━━\n`;
+            lineMessage += `📋 予約リクエスト受付\n`;
+            lineMessage += `━━━━━━━━━━━━━━━\n\n`;
+            lineMessage += `会場名: ${formData.venueName}\n`;
+            lineMessage += `代表者氏名: ${formData.name}\n`;
+            lineMessage += `予約日時: ${formData.date} ${formData.timeSlot}\n`;
+            lineMessage += `プラン: ${formData.plan}\n`;
+            lineMessage += `人数: ${numberText}\n`;
+            
+            if (formData.optionTarp > 0) {
+                lineMessage += `オプションタープテント: ${formData.optionTarp}本\n`;
+            }
+            
+            lineMessage += `\n💰 お見積り金額: ${formData.totalAmount}\n`;
+            lineMessage += `\n上記内容でご予約のリクエストを受け付けました。\n\n`;
+            lineMessage += `※ご予約は完了しておりませんので、店舗からの連絡をお待ちください。\n`;
+            lineMessage += `※1日〜2日経っても返信がない場合、お手数ですがお電話にてご連絡ください。\n\n`;
+            
+            if (formData.plan === '食材付き') {
+                lineMessage += `📌 キャンセル無料期限: 2日前の正午まで\n\n`;
+            } else {
+                lineMessage += `📌 キャンセル無料期限: 前日の正午まで\n\n`;
+            }
+            
+            lineMessage += `お問い合わせ: 080-1234-5678`;
+            
+            try {
+                await fetch(GAS_API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        type: 'liff_bbq_reservation',
+                        data: formData
+                    })
+                });
+                
+                if (liff.isInClient()) {
+                    await liff.sendMessages([{
+                        type: 'text',
+                        text: lineMessage
+                    }]);
+                }
+                
+                document.getElementById('confirmationScreen2').style.display = 'none';
+                document.getElementById('formContainer2').style.display = 'block';
+                successMsg.style.display = 'block';
+                document.getElementById('reservationForm2').reset();
+                document.getElementById('estimateBox2').style.display = 'none';
+                
+                document.getElementById('submitBtn2').disabled = true;
+                window.scrollTo(0, 0);
+                
+                setTimeout(() => {
+                    if (liff.isInClient()) {
+                        liff.closeWindow();
+                    }
+                }, 3000);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('送信に失敗しました。もう一度お試しください。');
+            } finally {
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = '予約リクエストを送信';
+            }
+        }
+        
+        // LIFF初期化
+        window.onload = function() {
+            // 今日の日付を最小値に設定
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').min = today;
+            document.getElementById('date2').min = today;
+            
+            // スライドショー開始
+            startSlideshow1();
+            startSlideshow2();
+            
+            // LIFF初期化
+            liff.init({
+                liffId: "YOUR_LIFF_ID" // ここにLIFF IDを設定
+            }).then(() => {
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                }
+                
+                liff.getProfile().then(profile => {
+                    liffUserId = profile.userId;
+                    console.log('User:', profile.displayName);
+                }).catch(err => {
+                    console.log('Profile error:', err);
+                });
+                
+            }).catch(err => {
+                console.error('LIFF init error:', err);
+            });
+        };
+    </script>
+</body>
+</html>
