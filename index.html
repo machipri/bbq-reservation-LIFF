@@ -1670,35 +1670,43 @@
         }
         
         // LIFF初期化
-        window.onload = function() {
-            // 今日の日付を最小値に設定
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('date').min = today;
-            document.getElementById('date2').min = today;
-            
-            // スライドショー開始
-            startSlideshow1();
-            startSlideshow2();
-            
-            // LIFF初期化
-            liff.init({
-                liffId: "2008061698-4L1xJzk8" // ここにLIFF IDを設定
-            }).then(() => {
-                if (!liff.isLoggedIn()) {
-                    liff.login();
-                }
-                
-                liff.getProfile().then(profile => {
-                    liffUserId = profile.userId;
-                    console.log('User:', profile.displayName);
-                }).catch(err => {
-                    console.log('Profile error:', err);
-                });
-                
-            }).catch(err => {
-                console.error('LIFF init error:', err);
+window.onload = function() {
+    // 今日の日付を最小値に設定
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('date').min = today;
+    document.getElementById('date2').min = today;
+    
+    // スライドショー開始
+    startSlideshow1();
+    startSlideshow2();
+    
+    // LIFF初期化
+    liff.init({
+        liffId: "2008061698-4L1xJzk8"
+    }).then(() => {
+        console.log('LIFF init succeeded');
+        
+        // ログイン状態チェック
+        if (!liff.isLoggedIn()) {
+            console.log('Not logged in, redirecting to login');
+            liff.login({
+                redirectUri: window.location.href
             });
-        };
+            return;
+        }
+        
+        // ユーザー情報取得
+        liff.getProfile().then(profile => {
+            liffUserId = profile.userId;
+            console.log('User:', profile.displayName);
+        }).catch(err => {
+            console.log('Profile error:', err);
+        });
+        
+    }).catch(err => {
+        console.error('LIFF init error:', err);
+    });
+};
     </script>
 </body>
 </html>
