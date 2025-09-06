@@ -1159,7 +1159,7 @@
                 errorElement.textContent = '※ 大人は2人以上を選択してください';
                 errorElement.style.display = 'block';
             } else if (totalPeople > 50) {
-                errorElement.textContent = '※ 合計人数が50名を超えています。お電話（080-1234-5678）にてご予約ください';
+                errorElement.textContent = '※ 合計人数が50名を超えています。お電話（06-6130-3811）にてご予約ください';
                 errorElement.style.display = 'block';
             } else {
                 errorElement.style.display = 'none';
@@ -1226,7 +1226,7 @@
             }
             
             if (totalPeople > 50) {
-                alert('合計人数が50名を超えています。\nお電話（080-1234-5678）にてご予約ください');
+                alert('合計人数が50名を超えています。\nお電話（06-6130-3811）にてご予約ください');
                 return false;
             }
             
@@ -1299,7 +1299,7 @@
             confirmBtn.textContent = '送信中...';
             
             const formData = {
-                venueName: '川とBBQのキャンプフィールド',
+                venueName: '【箕面市 止々呂美】川とBBQのキャンプフィールド',
                 date: document.getElementById('date').value,
                 timeSlot: document.getElementById('timeSlot').value,
                 plan: document.getElementById('plan').value,
@@ -1338,7 +1338,7 @@
                 lineMessage += `オプションタープテント: ${formData.optionTarp}本\n`;
             }
             
-            lineMessage += `\n💰 お見積り金額: ${formData.totalAmount}\n`;
+            lineMessage += `\nお見積り金額: ${formData.totalAmount}\n`;
             lineMessage += `\n上記内容でご予約のリクエストを受け付けました。\n\n`;
             lineMessage += `※ご予約は完了しておりませんので、店舗からの連絡をお待ちください。\n`;
             lineMessage += `※1日〜2日経っても返信がない場合、お手数ですがお電話にてご連絡ください。\n\n`;
@@ -1437,7 +1437,7 @@
                 errorElement.textContent = '※ 大人は2人以上を選択してください';
                 errorElement.style.display = 'block';
             } else if (totalPeople > 50) {
-                errorElement.textContent = '※ 合計人数が50名を超えています。お電話（080-1234-5678）にてご予約ください';
+                errorElement.textContent = '※ 合計人数が50名を超えています。お電話（06-6130-3811）にてご予約ください';
                 errorElement.style.display = 'block';
             } else {
                 errorElement.style.display = 'none';
@@ -1573,7 +1573,7 @@
             confirmBtn.textContent = '送信中...';
             
             const formData = {
-                venueName: '川と森のバーベキューランド',
+                venueName: '【高槻市 摂津峡】川と森のバーベキューランド',
                 date: document.getElementById('date2').value,
                 timeSlot: document.getElementById('timeSlot2').value,
                 plan: document.getElementById('plan2').value,
@@ -1612,7 +1612,7 @@
                 lineMessage += `オプションタープテント: ${formData.optionTarp}本\n`;
             }
             
-            lineMessage += `\n💰 お見積り金額: ${formData.totalAmount}\n`;
+            lineMessage += `\nお見積り金額: ${formData.totalAmount}\n`;
             lineMessage += `\n上記内容でご予約のリクエストを受け付けました。\n\n`;
             lineMessage += `※ご予約は完了しておりませんので、店舗からの連絡をお待ちください。\n`;
             lineMessage += `※1日〜2日経っても返信がない場合、お手数ですがお電話にてご連絡ください。\n\n`;
