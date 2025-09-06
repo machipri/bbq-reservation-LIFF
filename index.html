@@ -1354,6 +1354,7 @@
             try {
                 await fetch(GAS_API_URL, {
                     method: 'POST',
+                    mode: 'no-cors'
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -1627,6 +1628,7 @@
             try {
                 await fetch(GAS_API_URL, {
                     method: 'POST',
+                    mode: 'no-cors'
                     headers: {
                         'Content-Type': 'application/json',
                     },
