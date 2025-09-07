@@ -1291,7 +1291,7 @@
         }
         
         // 予約送信処理
-       async function submitReservation() {
+async function submitReservation() {
     const confirmBtn = document.getElementById('confirmBtn');
     const successMsg = document.getElementById('successMessage');
     
@@ -1313,7 +1313,7 @@
         userId: liffUserId
     };
     
-    // 人間が読める形式のメッセージ（電話番号を追加）
+    // 人間が読める形式のメッセージ
     let numberText = '';
     if (formData.adults > 0) numberText += `大人（中学生以上）${formData.adults}人`;
     if (formData.children > 0) {
@@ -1330,7 +1330,7 @@
     lineMessage += `━━━━━━━━━━━━━━━\n\n`;
     lineMessage += `会場名: ${formData.venueName}\n`;
     lineMessage += `代表者氏名: ${formData.name}\n`;
-    lineMessage += `電話番号: ${formData.phone}\n`;  // 電話番号を追加
+    lineMessage += `電話番号: ${formData.phone}\n`;
     lineMessage += `予約日時: ${formData.date} ${formData.timeSlot}\n`;
     lineMessage += `プラン: ${formData.plan}\n`;
     lineMessage += `人数: ${numberText}\n`;
@@ -1345,7 +1345,6 @@
     
     try {
         if (liff.isInClient()) {
-            // JSONデータを含むメッセージ（非表示）と確認メッセージ（表示）を送信
             const dataStr = JSON.stringify(formData);
             const combinedMessage = `${dataStr}\n${lineMessage}`;
             
@@ -1355,7 +1354,6 @@
             }]);
         }
         
-        // 成功処理
         document.getElementById('confirmationScreen').style.display = 'none';
         document.getElementById('formContainer').style.display = 'block';
         successMsg.style.display = 'block';
@@ -1377,31 +1375,7 @@
         confirmBtn.disabled = false;
         confirmBtn.textContent = '予約リクエストを送信';
     }
-}
-        
-        // 成功処理
-        document.getElementById('confirmationScreen').style.display = 'none';
-        document.getElementById('formContainer').style.display = 'block';
-        successMsg.style.display = 'block';
-        document.getElementById('reservationForm').reset();
-        document.getElementById('estimateBox').style.display = 'none';
-        document.getElementById('submitBtn').disabled = true;
-        window.scrollTo(0, 0);
-        
-        setTimeout(() => {
-            if (liff.isInClient()) {
-                liff.closeWindow();
-            }
-        }, 3000);
-        
-    } catch (error) {
-        console.error('Error:', error);
-        alert('送信に失敗しました。もう一度お試しください。');
-    } finally {
-        confirmBtn.disabled = false;
-        confirmBtn.textContent = '予約リクエストを送信';
-    }
-}
+}   
         
         // === 2店舗目の関数 ===
         
@@ -1573,29 +1547,28 @@
             window.scrollTo(0, 0);
         }
         
-       async function submitReservation() {
-    const confirmBtn = document.getElementById('confirmBtn');
-    const successMsg = document.getElementById('successMessage');
+       async function submitReservation2() {
+    const confirmBtn = document.getElementById('confirmBtn2');
+    const successMsg = document.getElementById('successMessage2');
     
     confirmBtn.disabled = true;
     confirmBtn.textContent = '送信中...';
     
     const formData = {
         venueName: '摂津峡',
-        date: document.getElementById('date').value,
-        timeSlot: document.getElementById('timeSlot').value,
-        plan: document.getElementById('plan').value,
-        adults: document.getElementById('adults').value,
-        children: document.getElementById('children').value,
-        infants: document.getElementById('infants').value,
-        name: document.getElementById('lastName').value + ' ' + document.getElementById('firstName').value,
-        phone: document.getElementById('phone').value,
-        optionTarp: document.getElementById('optionTarp').value,
-        totalAmount: document.getElementById('totalAmount').textContent,
+        date: document.getElementById('date2').value,
+        timeSlot: document.getElementById('timeSlot2').value,
+        plan: document.getElementById('plan2').value,
+        adults: document.getElementById('adults2').value,
+        children: document.getElementById('children2').value,
+        infants: document.getElementById('infants2').value,
+        name: document.getElementById('lastName2').value + ' ' + document.getElementById('firstName2').value,
+        phone: document.getElementById('phone2').value,
+        optionTarp: document.getElementById('optionTarp2').value,
+        totalAmount: document.getElementById('totalAmount2').textContent,
         userId: liffUserId
     };
     
-    // 人間が読める形式のメッセージ（電話番号を追加）
     let numberText = '';
     if (formData.adults > 0) numberText += `大人（中学生以上）${formData.adults}人`;
     if (formData.children > 0) {
@@ -1612,7 +1585,7 @@
     lineMessage += `━━━━━━━━━━━━━━━\n\n`;
     lineMessage += `会場名: ${formData.venueName}\n`;
     lineMessage += `代表者氏名: ${formData.name}\n`;
-    lineMessage += `電話番号: ${formData.phone}\n`;  // 電話番号を追加
+    lineMessage += `電話番号: ${formData.phone}\n`;
     lineMessage += `予約日時: ${formData.date} ${formData.timeSlot}\n`;
     lineMessage += `プラン: ${formData.plan}\n`;
     lineMessage += `人数: ${numberText}\n`;
@@ -1627,7 +1600,6 @@
     
     try {
         if (liff.isInClient()) {
-            // JSONデータを含むメッセージ（非表示）と確認メッセージ（表示）を送信
             const dataStr = JSON.stringify(formData);
             const combinedMessage = `${dataStr}\n${lineMessage}`;
             
@@ -1637,37 +1609,12 @@
             }]);
         }
         
-        // 成功処理
-        document.getElementById('confirmationScreen').style.display = 'none';
-        document.getElementById('formContainer').style.display = 'block';
+        document.getElementById('confirmationScreen2').style.display = 'none';
+        document.getElementById('formContainer2').style.display = 'block';
         successMsg.style.display = 'block';
-        document.getElementById('reservationForm').reset();
-        document.getElementById('estimateBox').style.display = 'none';
-        document.getElementById('submitBtn').disabled = true;
-        window.scrollTo(0, 0);
-        
-        setTimeout(() => {
-            if (liff.isInClient()) {
-                liff.closeWindow();
-            }
-        }, 3000);
-        
-    } catch (error) {
-        console.error('Error:', error);
-        alert('送信に失敗しました。もう一度お試しください。');
-    } finally {
-        confirmBtn.disabled = false;
-        confirmBtn.textContent = '予約リクエストを送信';
-    }
-}
-        
-        // 成功処理
-        document.getElementById('confirmationScreen').style.display = 'none';
-        document.getElementById('formContainer').style.display = 'block';
-        successMsg.style.display = 'block';
-        document.getElementById('reservationForm').reset();
-        document.getElementById('estimateBox').style.display = 'none';
-        document.getElementById('submitBtn').disabled = true;
+        document.getElementById('reservationForm2').reset();
+        document.getElementById('estimateBox2').style.display = 'none';
+        document.getElementById('submitBtn2').disabled = true;
         window.scrollTo(0, 0);
         
         setTimeout(() => {
