@@ -1345,7 +1345,6 @@ async function submitReservation() {
     
     try {
         if (liff.isInClient()) {
-            const dataStr = JSON.stringify(formData);
           await liff.sendMessages([{
     type: 'text',
     text: lineMessage
@@ -1598,7 +1597,6 @@ async function submitReservation() {
     
     try {
         if (liff.isInClient()) {
-            const dataStr = JSON.stringify(formData);
            await liff.sendMessages([{
     type: 'text',
     text: lineMessage
