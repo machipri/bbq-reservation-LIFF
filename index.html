@@ -1346,12 +1346,10 @@ async function submitReservation() {
     try {
         if (liff.isInClient()) {
             const dataStr = JSON.stringify(formData);
-            const combinedMessage = `${dataStr}\n${lineMessage}`;
-            
-            await liff.sendMessages([{
-                type: 'text',
-                text: combinedMessage
-            }]);
+          await liff.sendMessages([{
+    type: 'text',
+    text: lineMessage
+}]);
         }
         
         document.getElementById('confirmationScreen').style.display = 'none';
@@ -1601,12 +1599,10 @@ async function submitReservation() {
     try {
         if (liff.isInClient()) {
             const dataStr = JSON.stringify(formData);
-            const combinedMessage = `${dataStr}\n${lineMessage}`;
-            
-            await liff.sendMessages([{
-                type: 'text',
-                text: combinedMessage
-            }]);
+           await liff.sendMessages([{
+    type: 'text',
+    text: lineMessage
+}]);
         }
         
         document.getElementById('confirmationScreen2').style.display = 'none';
